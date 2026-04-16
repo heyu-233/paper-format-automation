@@ -1,6 +1,6 @@
 interface:
-  display_name: "?????????"
-  short_description: "???? docx ????????????"
+  display_name: "论文排版自动化工具"
+  short_description: "检查中文期刊 docx 模板与论文稿件的格式差异，并生成保守的排版结果。"
   default_prompt: "Use $paper-format-automation to compare a Chinese journal template .docx with a manuscript .docx, generate a format report, and prepare a conservative submission-ready draft."
 
 policy:

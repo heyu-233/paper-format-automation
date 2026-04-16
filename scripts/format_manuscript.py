@@ -59,6 +59,30 @@ ALIGNMENT_REVERSE = {
     "justify": WD_ALIGN_PARAGRAPH.JUSTIFY,
 }
 
+UNIFORM_BLOCK_ROLES = {
+    "title",
+    "authors",
+    "affiliations",
+    "abstract_cn",
+    "keywords_cn",
+    "title_en",
+    "authors_en",
+    "affiliations_en",
+    "abstract_en",
+    "keywords_en",
+    "heading_1",
+    "heading_2",
+    "fund",
+    "caption_figure",
+    "caption_table",
+    "references_title",
+    "reference_entry",
+    "author_bio_title",
+    "author_bio_entry",
+    "header",
+    "footer",
+}
+
 
 def _apply_run_style(run, rule: Dict[str, Any]) -> None:
     east_asia = rule.get("font_east_asia")
@@ -178,6 +202,54 @@ def _copy_run_properties(src_run, dst_run) -> None:
     dst_r.insert(0, deepcopy(src_rpr))
 
 
+def _clear_run_properties(run) -> None:
+    r_pr = run._element.rPr
+    if r_pr is not None:
+        run._element.remove(r_pr)
+
+
+def _style_name(style) -> str | None:
+    return style.name if style is not None and style.name else None
+
+
+def _sync_template_style(doc: Document, template_doc: Document, style_name: str | None) -> None:
+    if not style_name:
+        return
+    try:
+        template_style = template_doc.styles[style_name]
+    except Exception:
+        return
+
+    styles_root = doc.styles.element
+    template_style_element = deepcopy(template_style.element)
+    template_style_id = template_style.style_id
+
+    for existing in list(styles_root.findall(qn("w:style"))):
+        existing_name_el = existing.find(qn("w:name"))
+        existing_name = existing_name_el.get(qn("w:val")) if existing_name_el is not None else None
+        if existing.get(qn("w:styleId")) == template_style_id or existing_name == style_name:
+            styles_root.remove(existing)
+    styles_root.append(template_style_element)
+
+
+def _sync_template_styles(doc: Document, template_doc: Document, template_blocks: Dict[str, Any]) -> None:
+    if template_doc is None:
+        return
+    style_names = {"Normal"}
+    for paragraph in template_blocks.values():
+        style_name = _style_name(getattr(paragraph, "style", None))
+        if style_name:
+            style_names.add(style_name)
+    for section in template_doc.sections:
+        for story in (section.header, section.first_page_header, section.footer, section.first_page_footer):
+            for paragraph in story.paragraphs:
+                style_name = _style_name(getattr(paragraph, "style", None))
+                if style_name:
+                    style_names.add(style_name)
+    for style_name in style_names:
+        _sync_template_style(doc, template_doc, style_name)
+
+
 def _rewrite_story_from_template(src_story, dst_story) -> None:
     # Force python-docx to materialize a valid target part before editing it.
     _ = dst_story.paragraphs
@@ -222,6 +294,7 @@ def _copy_paragraph_properties(src_paragraph, dst_paragraph) -> None:
 
 
 def _apply_template_block(paragraph, rule: Dict[str, Any] | None, template_paragraph) -> None:
+    role = rule.get("role") if rule else None
     if template_paragraph is not None:
         try:
             if template_paragraph.style is not None and template_paragraph.style.name:
@@ -229,6 +302,10 @@ def _apply_template_block(paragraph, rule: Dict[str, Any] | None, template_parag
         except Exception:
             pass
         _copy_paragraph_properties(template_paragraph, paragraph)
+    if role in UNIFORM_BLOCK_ROLES:
+        for run in paragraph.runs:
+            if (run.text or "").strip():
+                _clear_run_properties(run)
     if rule:
         _apply_paragraph_style(paragraph, rule)
 
@@ -643,6 +720,7 @@ def format_doc(input_docx: Path, rules_json: Path, output_docx: Path) -> None:
             section.footer_distance = Pt(layout["footer_distance"])
 
     blocks = rules.get("blocks", {})
+    _sync_template_styles(doc, template_doc, template_blocks)
     _ensure_front_matter(doc, blocks)
     _apply_section_breaks(doc, rules)
     _apply_template_headers_footers(doc, template_doc)

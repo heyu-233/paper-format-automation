@@ -35,9 +35,14 @@ This is not a general-purpose "format any paper from any source" tool yet.
 
 ```text
 .
+├─ CHANGELOG.md                 # Release history
+├─ LICENSE                      # Open-source license
+├─ ROADMAP.md                   # Near-term and future plans
 ├─ SKILL.md                     # Skill entry and usage guidance
 ├─ agents/
 │  └─ openai.yaml               # Skill metadata
+├─ examples/
+│  └─ README.md                 # Example workflow and expected outputs
 ├─ references/
 │  ├─ workflow.md               # Workflow notes
 │  ├─ tooling.md                # Local dependency notes
@@ -127,6 +132,12 @@ Typical outputs inside `outdir`:
 This repository is also packaged as a local Codex skill. See:
 - `SKILL.md`
 - `agents/openai.yaml`
+
+## Project docs
+
+- `CHANGELOG.md` for release notes
+- `ROADMAP.md` for planned improvements
+- `examples/README.md` for a sample local workflow
 
 ## Project status
 

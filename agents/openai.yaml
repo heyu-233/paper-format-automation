@@ -1,0 +1,7 @@
+interface:
+  display_name: "?????????"
+  short_description: "???? docx ????????????"
+  default_prompt: "Use $paper-format-automation to compare a Chinese journal template .docx with a manuscript .docx, generate a format report, and prepare a conservative submission-ready draft."
+
+policy:
+  allow_implicit_invocation: true

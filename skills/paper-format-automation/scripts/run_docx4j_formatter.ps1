@@ -2,12 +2,20 @@ param(
     [Parameter(Mandatory = $true)] [string]$InputDocx,
     [Parameter(Mandatory = $true)] [string]$RulesJson,
     [Parameter(Mandatory = $true)] [string]$OutputDocx,
-    [string]$JarPath = ""
+    [string]$JarPath = "",
+    [string]$PythonExe = ""
 )
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 if ([string]::IsNullOrWhiteSpace($JarPath)) {
     $JarPath = Join-Path $scriptDir "java/formatter.jar"
+}
+if ([string]::IsNullOrWhiteSpace($PythonExe)) {
+    $pythonCommand = Get-Command python -ErrorAction SilentlyContinue
+    if ($null -eq $pythonCommand) {
+        throw "Python executable not found. Pass -PythonExe explicitly or install python on PATH."
+    }
+    $PythonExe = $pythonCommand.Source
 }
 
 if (-not (Test-Path -LiteralPath $InputDocx)) {
@@ -18,7 +26,7 @@ if (-not (Test-Path -LiteralPath $RulesJson)) {
 }
 if (-not (Test-Path -LiteralPath $JarPath)) {
     Write-Warning "formatter.jar not found. Falling back to Python formatter."
-    & python (Join-Path $scriptDir 'format_manuscript.py') --input $InputDocx --rules $RulesJson --output $OutputDocx
+    & $PythonExe (Join-Path $scriptDir 'format_manuscript.py') --input $InputDocx --rules $RulesJson --output $OutputDocx
     if ($LASTEXITCODE -ne 0) {
         throw "Python formatter exited with code $LASTEXITCODE"
     }

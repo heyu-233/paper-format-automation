@@ -88,6 +88,8 @@ python scripts/run_pipeline.py `
   --mode format
 ```
 
+`run_pipeline.py` now validates the input extensions up front and passes the active Python interpreter into the PowerShell wrapper, so the Python formatter fallback still works when `python` is not on `PATH`.
+
 ### 3. Check the outputs
 
 Typical outputs inside `outdir`:
@@ -138,6 +140,7 @@ This repository is also packaged as a local Codex skill. See:
 - `CHANGELOG.md` for release notes
 - `ROADMAP.md` for planned improvements
 - `examples/README.md` for a sample local workflow
+- repository root `README.md` for development and CI notes
 
 ## Project status
 

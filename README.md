@@ -44,3 +44,13 @@ The actual installable skill package lives at:
 - `skills/paper-format-automation`
 
 See `skills/paper-format-automation/README.md` for usage, workflow, and local tooling details.
+
+## Development
+
+Run the local regression checks with:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+A matching GitHub Actions workflow runs the same test suite on pushes and pull requests.

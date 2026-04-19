@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+SUPPORTED_TEMPLATE_SUFFIXES = {".doc", ".docx"}
 
 
 def run(cmd):
@@ -21,10 +22,17 @@ def main() -> int:
     parser.add_argument("--mode", choices=["check", "format"], default="check")
     args = parser.parse_args()
 
+    template_suffix = args.template.suffix.lower()
+    manuscript_suffix = args.manuscript.suffix.lower()
+    if template_suffix not in SUPPORTED_TEMPLATE_SUFFIXES:
+        raise SystemExit("Template must be a .doc or .docx file")
+    if manuscript_suffix != ".docx":
+        raise SystemExit("Manuscript must be a .docx file")
+
     outdir = args.outdir
     outdir.mkdir(parents=True, exist_ok=True)
 
-    if args.template.suffix.lower() == ".docx":
+    if template_suffix == ".docx":
         prepared_template = args.template
     else:
         prepared_template = outdir / (args.template.stem + ".docx")
@@ -44,7 +52,8 @@ def main() -> int:
     if args.mode == "format":
         run([
             "powershell", "-ExecutionPolicy", "Bypass", "-File", str(SCRIPT_DIR / "run_docx4j_formatter.ps1"),
-            "-InputDocx", str(args.manuscript), "-RulesJson", str(rules_path), "-OutputDocx", str(formatted_path)
+            "-InputDocx", str(args.manuscript), "-RulesJson", str(rules_path), "-OutputDocx", str(formatted_path),
+            "-PythonExe", sys.executable,
         ])
     return 0
 
